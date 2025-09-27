@@ -1,0 +1,8 @@
+.DS_Store
+.idea
+data
+doc
+node_modules
+dist
+.angular
+NOTES.md
