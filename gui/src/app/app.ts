@@ -6,9 +6,11 @@ import { RouterModule } from '@angular/router'
   imports: [RouterModule],
   template: `
     <main>
-      <header>
-        <h1>PoemQuest</h1>
-      </header>
+      <a [routerLink]="['/']">
+        <header>
+          <h1>PoemQuest</h1>
+        </header>
+      </a>
       <section class="content">
         <router-outlet></router-outlet>
       </section>
@@ -26,4 +28,6 @@ import { RouterModule } from '@angular/router'
     }
   `
 })
-export class App { }
+export class App {
+
+}
