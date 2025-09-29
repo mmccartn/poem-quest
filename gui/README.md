@@ -17,4 +17,4 @@ Development
 
 Example
 -------
-![gui-example](../media/gui-example.jpg)
+![gui-example](media/gui-example.jpg)
