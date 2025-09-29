@@ -36,40 +36,41 @@ Features Not Implemented
 
 Requirements
 ------------
-* Python 3.6+
-
+- Python 3.6+
 
 Usage
 -----
-Run `python main.py` for the following interactive interface.
+Run `python main.py -h` for the following usage instructions:
 
 ```
-Elevator Simulator:
+Usage: main.py [OPTION] <P0_TIME> <P0_SRC> <P0_DST> [<P1_TIME> <P1_SRC> <P1_DST> ...]
 
-Description:
-  This simulates a single one-person elevator using the SCAN algorithm.
+Simulate an elevator system given a list of passengers.
 
-Options:
-  q                         Quit the setup loop.
-  h                         Show this text.
-  r                         Run the simulation
-  p <TIME> <SRC> <DST>      Schedule a person to arrive at TIME, on floor SRC,
-                            that will call the elevator and ride to floor DST.
+Each passenger is described by three numbers:
+  TIME:     The arrival time of the passenger (integer, in sim time units).
+  SRC:      The source floor where the passenger starts.
+  DST:      The destination floor where the passenger wants to go.
+
+Arguments must be provided in groups of three, one group per passenger.
+
+Option:
+  -h        Show this help message and exit.
+
+Examples:
+  # One passenger, arriving at t=0, starting at floor 1, going to floor 5
+  main.py 0 1 5
+
+  # Two passengers:
+  #   P0 arrives at t=0, at floor 1, going to 5
+  #   P1 arrives at t=3, at floor 2, going to 7
+  main.py 0 1 5 3 2 7
 ```
 
 Example
 -------
 ```
-p 0 5 6
-Scheduled P0, to arrive at t=0, on F5 -> F6.
-
-p 0 5 4
-Scheduled P1, to arrive at t=0, on F5 -> F4.
-
-p 0 9 10
-Scheduled P2, to arrive at t=0, on F9 -> F10.
-
-r
+$ python main.py 0 5 6 0 5 4 0 9 10
 
 Begin simulation.
 t=0: P0 arrived at F5 -> F6
@@ -97,6 +98,4 @@ t=14: P1 boarded at F5, going to F4
 t=14: elevator moved to F4
 t=15: P1 dropped off at F4
 Simulation complete.
-
-Exiting.
 ```

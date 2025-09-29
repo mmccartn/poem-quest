@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from heapq import heappop, heappush
+from sys import argv, exit
 
 INITIAL_FLOOR = 1
 
@@ -106,53 +107,56 @@ class Simulator:
 
 
 def main():
-    p_cnt = 0
-    sim = Simulator()
+    usage = '''Usage: main.py [OPTION] <P0_TIME> <P0_SRC> <P0_DST> [<P1_TIME> <P1_SRC> <P1_DST> ...]
 
-    help = '''Elevator Simulator:
+Simulate an elevator system given a list of passengers.
 
-Description:
-  This simulates a single one-person elevator using the SCAN algorithm.
+Each passenger is described by three numbers:
+  TIME:     The arrival time of the passenger (integer, in sim time units).
+  SRC:      The source floor where the passenger starts.
+  DST:      The destination floor where the passenger wants to go.
 
-Options:
-  q                         Quit the setup loop.
-  h                         Show this text.
-  r                         Run the simulation
-  p <TIME> <SRC> <DST>      Schedule a person to arrive at TIME, on floor SRC,
-                            that will call the elevator and ride to floor DST.\n'''
-    print(help)
-    while True:
-        user_in = input().lower()
-        if not user_in:
-            print('Error: no input.\n')
-            continue
+Arguments must be provided in groups of three, one group per passenger.
 
-        flag = user_in[0]
-        if flag == 'q':
-            break
-        elif flag == 'h':
-            print(help)
-        elif flag == 'r':
-            print('\nBegin simulation.')
-            sim.run()
-            print('Simulation complete.\n')
-            break
-        elif flag == 'p':
+Option:
+  -h        Show this help message and exit.
+
+Examples:
+  # One passenger, arriving at t=0, starting at floor 1, going to floor 5
+  main.py 0 1 5
+
+  # Two passengers:
+  #   P0 arrives at t=0, at floor 1, going to 5
+  #   P1 arrives at t=3, at floor 2, going to 7
+  main.py 0 1 5 3 2 7
+'''
+    arg_len = len(argv)
+    if arg_len < 2:
+        print('Error: No input.')
+        return 1
+    elif (argv[1] == '-h'):
+        print(usage)
+    elif (arg_len - 1) % 3 == 0:
+        p_cnt = 0
+        sim = Simulator()
+        for i in range(1, arg_len, 3):
             try:
-                args = user_in[2:].split()
-                time = max(0, int(args[0]))
-                src = max(1, int(args[1]))
-                dst = max(1, int(args[2]))
+                time = max(0, int(argv[i]))
+                src = max(1, int(argv[i + 1]))
+                dst = max(1, int(argv[i + 2]))
                 sim.add_person(Person(p_cnt, time, src, dst))
-                print(f'Scheduled P{p_cnt}, to arrive at t={time}, on F{src} -> F{dst}.\n')
                 p_cnt += 1
             except:
-                print('Error: Invalid person argument(s).\n')
-        else:
-            print('Error: Invalid option.\n')
+                print('Error: Invalid person argument(s).')
+                return 1
+        print('\nBegin simulation.')
+        sim.run()
+        print('Simulation complete.')
+    else:
+        print('Error: Invalid input.')
+        return 1
 
-    print('Exiting.')
-
+    return 0
 
 if __name__ == "__main__":
-    main()
+    exit(main())
