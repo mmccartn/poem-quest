@@ -1,6 +1,6 @@
 PoemQuest
 =========
-A website to query the https://poetrydb.org/.
+A website to query the https://poetrydb.org/, adapted from the Angular [first-app](https://angular.dev/tutorials/first-app) tutorial.
 
 Requirements
 ------------
