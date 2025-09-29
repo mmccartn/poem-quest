@@ -4,7 +4,7 @@ A website to query the https://poetrydb.org/.
 
 Requirements
 ------------
- * [NodeJS](https://nodejs.org/) v20+
+- [NodeJS](https://nodejs.org/) v20+
 
 Installation
 ------------
