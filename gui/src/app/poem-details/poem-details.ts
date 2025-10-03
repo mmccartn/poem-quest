@@ -10,8 +10,12 @@ import { PoemService } from '../poem.service'
       <h2 class="title">{{ title }}</h2>
       <p class="author">By: {{ author }}</p>
       <section class="text">
-        @for (line of lines(); track $index) {
-          <p>{{ line }}</p>
+        @if (isLoading()) {
+          <p class="loading">Loading poem...</p>
+        } @else {
+          @for (line of lines(); track $index) {
+            <p>{{ line }}</p>
+          }
         }
       </section>
       <p class="line-count">Total lines: {{ this.lines().length }}</p>
@@ -47,6 +51,10 @@ import { PoemService } from '../poem.service'
       margin: 0.25rem 0;
       text-indent: 1.25rem;
     }
+    .loading {
+      text-align: center;
+      font-style: italic;
+    }
     .line-count {
       text-align: right;
       font-size: 0.85rem;
@@ -62,16 +70,20 @@ export class PoemDetails {
   protected readonly title: string
 
   protected readonly lines = signal<string[]>([])
+  protected readonly isLoading = signal(false)
 
   constructor() {
     this.author = this.route.snapshot.params['author']
     this.title = this.route.snapshot.params['title']
 
+    this.isLoading.set(true)
     this.poemService.getPoemText(this.author, this.title).then(lines => {
       this.lines.set(lines)
     }).catch(err => {
       this.lines.set([])
-      console.error(err)
+      console.error('Unable to fetch poem.', err)
+    }).finally(() => {
+      this.isLoading.set(false)
     })
   }
 }

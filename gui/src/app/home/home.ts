@@ -1,3 +1,4 @@
+import { Component, inject, signal, computed } from '@angular/core'
 import { Component, inject } from '@angular/core'
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { Poem } from '../types/poem'
@@ -27,7 +28,9 @@ const DEFAULT_POEM_COUNT = 100
       </form>
     </section>
     <section class="results">
-      @if (!poemList.length) {
+      @if (isLoading()) {
+        <p class="loading">Loading poems...</p>
+      } @else if (!poemList.length) {
         <p class="empty">No results loaded.</p>
       } @else {
         <div class="poem-list">
@@ -89,8 +92,10 @@ const DEFAULT_POEM_COUNT = 100
     }
     .empty {
       text-align: center;
-      color: #666;
-      padding: 2rem 0;
+    }
+    .loading {
+      text-align: center;
+      font-style: italic;
     }
   `
 })
@@ -104,7 +109,11 @@ export class Home {
     poemCount: new FormControl(DEFAULT_POEM_COUNT)
   })
 
+
+  protected readonly isLoading = signal(false)
+
   protected async submitSearch() {
+    this.isLoading.set(true)
     try {
       this.poemList = await this.poemService.getPoemsByAuthorTitle(
         this.searchForm.value.author ?? '',
@@ -113,7 +122,9 @@ export class Home {
       )
     } catch (err) {
       this.poemList = []
-      console.error(err)
+      console.error('Unable to fetch poem search results.', err)
+    } finally {
+      this.isLoading.set(false)
     }
   }
 }
