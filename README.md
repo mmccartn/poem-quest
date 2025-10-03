@@ -48,6 +48,7 @@ Notes
 Example
 -------
 ![gui-example](media/gui-example.jpg)
+![details-example](media/details-example.jpg)
 
 License
 -------
