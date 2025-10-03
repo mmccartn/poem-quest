@@ -21,8 +21,6 @@ export class PoemService {
     return Math.min(Math.max(term, 0), 1000)
   }
 
-  // Example:
-  // https://poetrydb.org/author,title,poemcount/William%20Shakespeare;Sonnet;100/author,title,linecount
   async getPoemsByAuthorTitle(author: string, title: string, poemCount: number): Promise<Poem[]> {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
