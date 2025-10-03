@@ -55,4 +55,16 @@ export class PoemService {
     }
     return json?.length ? json[0].lines : []
   }
+
+  async getAuthors(): Promise<string[]> {
+    const resp = await fetch(`${this.baseUrl}author`)
+    if (resp.status !== 200) {
+      throw new InvalidResponseError(resp.status, resp.statusText)
+    }
+    const json = await resp.json()
+    if (json.status) {
+      throw new InvalidResponseError(json.status, json.reason)
+    }
+    return json?.authors ?? []
+  }
 }

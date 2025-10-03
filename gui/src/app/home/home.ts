@@ -1,9 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core'
-import { Component, inject } from '@angular/core'
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { Poem } from '../types/poem'
 import { PoemEntry } from '../poem-entry/poem-entry'
 import { PoemService } from '../poem.service'
+import { toSignal } from '@angular/core/rxjs-interop'
+import { MatAutocompleteModule } from '@angular/material/autocomplete'
 
 const DEFAULT_AUTHOR = 'Shakespeare'
 const DEFAULT_TITLE = 'Sonnet'
@@ -11,15 +12,25 @@ const DEFAULT_POEM_COUNT = 100
 
 @Component({
   selector: 'app-home',
-  imports: [PoemEntry, ReactiveFormsModule],
+  imports: [PoemEntry, ReactiveFormsModule, MatAutocompleteModule],
   template: `
     <section class="search">
       <form [formGroup]="searchForm" (submit)="submitSearch()">
         <label for="author">Author:</label>
-        <input id="author" type="text" formControlName="author" placeholder="name of author" />
+        <input id="author"
+              type="text"
+              placeholder="Name of author"
+              matInput
+              formControlName="author"
+              [matAutocomplete]="autoAuthor">
+        <mat-autocomplete autoActiveFirstOption #autoAuthor="matAutocomplete">
+          @for (option of filteredAuthors(); track $index) {
+            <mat-option [value]="option">{{ option }}</mat-option>
+          }
+        </mat-autocomplete>
 
         <label for="title">Title:</label>
-        <input id="title" type="text" formControlName="title" placeholder="poem title" />
+        <input id="title" type="text" formControlName="title" placeholder="Poem title" />
 
         <label for="poem-count">Poem Count:</label>
         <input id="poem-count" type="number" formControlName="poemCount" />
@@ -103,12 +114,24 @@ export class Home {
   protected poemList: Poem[] = []
   protected readonly poemService: PoemService = inject(PoemService)
 
+  protected readonly authorFormControl: FormControl = new FormControl(DEFAULT_AUTHOR)
   protected readonly searchForm = new FormGroup({
-    author: new FormControl(DEFAULT_AUTHOR),
+    author: this.authorFormControl,
     title: new FormControl(DEFAULT_TITLE),
     poemCount: new FormControl(DEFAULT_POEM_COUNT)
   })
 
+  protected readonly authorInput = toSignal(
+    this.authorFormControl.valueChanges,
+    { initialValue: this.authorFormControl.value }
+  )
+
+  protected authorNames = signal<string[]>([])
+
+  protected readonly filteredAuthors = computed(() => {
+    const author = this.authorInput().toLowerCase()
+    return this.authorNames().filter(name => name.toLowerCase().includes(author))
+  })
 
   protected readonly isLoading = signal(false)
 
@@ -126,5 +149,14 @@ export class Home {
     } finally {
       this.isLoading.set(false)
     }
+  }
+
+  constructor() {
+    this.poemService.getAuthors().then(names => {
+      this.authorNames.set(names)
+    }).catch(err => {
+      this.authorNames.set([])
+      console.error('Unable to fetch author names.', err)
+    })
   }
 }
