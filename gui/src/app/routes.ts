@@ -1,23 +1,23 @@
 import { Routes } from '@angular/router'
 import { Home } from './home/home'
-import { PoemSearch } from './poem-search/poem-search'
 import { PageNotFound } from './page-not-found/page-not-found'
+import { PoemDetails } from './poem-details/poem-details'
 
 const routeConfig: Routes = [
   {
     path: '',
     component: Home,
-    title: 'Home page'
+    title: 'PoemQuest'
   },
   {
-    path: 'poems',
-    component: PoemSearch,
-    title: 'Poem Search'
+    path: 'details/:author/:title',
+    component: PoemDetails,
+    title: 'Poem details'
   },
   {
     path: '**',
     component: PageNotFound,
-    title: 'Page Not Found'
+    title: 'Page not found'
   }
 ]
 export default routeConfig

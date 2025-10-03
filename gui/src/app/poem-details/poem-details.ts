@@ -1,53 +1,77 @@
-import { Component, input } from '@angular/core'
-import { PoemInfo } from '../models/poem-info'
+import { ActivatedRoute } from '@angular/router'
+import { Component, inject, signal } from '@angular/core'
+import { PoemService } from '../poem.service'
 
 @Component({
   selector: 'app-poem-details',
   imports: [],
   template: `
     <article class="poem">
-      <h2 class="title">{{ poem().title }}</h2>
-      <p class="author">By: {{ poem().author }}</p>
+      <h2 class="title">{{ title }}</h2>
+      <p class="author">By: {{ author }}</p>
       <section class="text">
-        @for(line of poem().lines; track $index) {
+        @for (line of lines(); track $index) {
           <p>{{ line }}</p>
         }
       </section>
-      <p class="line-count">Total lines: {{ poem().linecount }}</p>
+      <p class="line-count">Total lines: {{ this.lines().length }}</p>
     </article>
   `,
   styles: `
     .poem {
-      width: 600px;
-      padding: 20px;
-      border: 1px solid black;
-      border-radius: 8px;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
       line-height: 1.5;
     }
     .title {
       text-align: center;
-      font-size: 16pt;
-      font-weight: bold;
-      margin: 0;
-      margin-bottom: 20px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
     }
     .author {
+      text-align: center;
       font-style: italic;
-      font-size: 13pt;
-      color: darkbrown;
-      margin-bottom: 10px;
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 1.5rem;
     }
     .text {
-      margin-bottom: 5px;
-      text-indent: 15px;
+      margin-bottom: 1rem;
+    }
+    .text p {
+      margin: 0.25rem 0;
+      text-indent: 1.25rem;
     }
     .line-count {
       text-align: right;
-      font-size: 11pt;
-      color: grey;
+      font-size: 0.85rem;
+      color: #777;
     }
   `
 })
 export class PoemDetails {
-  public poem = input.required<PoemInfo>()
+  protected readonly route: ActivatedRoute = inject(ActivatedRoute)
+  protected readonly poemService: PoemService = inject(PoemService)
+
+  protected readonly author: string
+  protected readonly title: string
+
+  protected readonly lines = signal<string[]>([])
+
+  constructor() {
+    this.author = this.route.snapshot.params['author']
+    this.title = this.route.snapshot.params['title']
+
+    this.poemService.getPoemText(this.author, this.title).then(lines => {
+      this.lines.set(lines)
+    }).catch(err => {
+      this.lines.set([])
+      console.error(err)
+    })
+  }
 }

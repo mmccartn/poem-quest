@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core'
-import { PoemInfo } from './models/poem-info'
+import { Poem } from './types/poem'
+
+class InvalidResponseError extends Error {
+  constructor(status: number, reason: string) {
+    super(`${status} - ${reason}`)
+  }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -8,25 +14,45 @@ export class PoemService {
   protected readonly baseUrl: string = 'https://poetrydb.org/'
 
   protected sanitizeString(term: string): string {
-    return term.replace(/\W/g, '')
+    return encodeURIComponent(term)
   }
 
   protected sanitizeNumber(term: number): number {
     return Math.min(Math.max(term, 0), 1000)
   }
 
-  async getPoemsByAuthorTitle(author: string, title: string, poemCount: number): Promise<PoemInfo[]> {
+  // Example:
+  // https://poetrydb.org/author,title,poemcount/William%20Shakespeare;Sonnet;100/author,title,linecount
+  async getPoemsByAuthorTitle(author: string, title: string, poemCount: number): Promise<Poem[]> {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
     poemCount = this.sanitizeNumber(poemCount)
-    const data = await fetch(
-      `${this.baseUrl}author,title,poemcount/${author};${title};${poemCount}`
+    const resp = await fetch(
+      `${this.baseUrl}author,title,poemcount/${author};${title};${poemCount}/author,title,linecount`
     )
-    if (data.status === 200) {
-      return (await data.json()) ?? []
-    } else {
-      throw new Error(`Invalid response, code: ${data.status}`)
+    if (resp.status !== 200) {
+      throw new InvalidResponseError(resp.status, resp.statusText)
     }
+    const json = await resp.json()
+    if (json.status) {
+      throw new InvalidResponseError(json.status, json.reason)
+    }
+    return json ?? []
   }
 
+  async getPoemText(author: string, title: string): Promise<string[]> {
+    author = this.sanitizeString(author)
+    title = this.sanitizeString(title)
+    const url = `${this.baseUrl}author,title,poemcount/${author};${title};1/lines`
+    console.log(url)
+    const resp = await fetch(url)
+    if (resp.status !== 200) {
+      throw new InvalidResponseError(resp.status, resp.statusText)
+    }
+    const json = await resp.json()
+    if (json.status) {
+      throw new InvalidResponseError(json.status, json.reason)
+    }
+    return json?.length ? json[0].lines : []
+  }
 }
