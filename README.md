@@ -37,11 +37,11 @@ Notes
 - Search result display implemented in [poem-entry.ts](gui/src/app/poem-entry/poem-entry.ts)
 - Poem detail view implemented in [poem-details.ts](gui/src/app/poem-details/poem-details.ts)
 - As an additional feature, the complete list of author names are queried on page load and used to autocomplete the author search field.
+- As another additional feature, the search terms are stored in the route, which enables seamless back button functionality.
 - Angular Signals used to support reactivity.
 - Loading text is displayed when fetching search results and poem text.
 - This site uses the PoetryDB REST API in three different ways, all of which can be found in the [poem.service.ts](gui/src/app/poem.service.ts)
 - State is managed local to each route and in a top-down manner.
-- Known issue: because there is no global state management, the search arguments and results do not persist after navigating to a poem display.
 - The number of poem search results may be limited by the Poem Count Field, but performance is acceptable even up to hundreds of results since the poem text is not requested in the search request.
 - Even for a single large poem, performance on the poem details route is acceptable since the metadata is redundantly requested, and the text is loaded asynchronously.
 

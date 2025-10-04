@@ -1,3 +1,4 @@
+import { ActivatedRoute, Router } from '@angular/router'
 import { Component, inject, signal, computed } from '@angular/core'
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { Poem } from '../types/poem'
@@ -5,10 +6,6 @@ import { PoemEntry } from '../poem-entry/poem-entry'
 import { PoemService } from '../poem.service'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { MatAutocompleteModule } from '@angular/material/autocomplete'
-
-const DEFAULT_AUTHOR = 'Shakespeare'
-const DEFAULT_TITLE = 'Sonnet'
-const DEFAULT_POEM_COUNT = 100
 
 @Component({
   selector: 'app-home',
@@ -111,23 +108,20 @@ const DEFAULT_POEM_COUNT = 100
   `
 })
 export class Home {
-  protected poemList: Poem[] = []
+  protected readonly route: ActivatedRoute = inject(ActivatedRoute)
+  protected readonly router: Router = inject(Router)
   protected readonly poemService: PoemService = inject(PoemService)
 
-  protected readonly authorFormControl: FormControl = new FormControl(DEFAULT_AUTHOR)
-  protected readonly searchForm = new FormGroup({
-    author: this.authorFormControl,
-    title: new FormControl(DEFAULT_TITLE),
-    poemCount: new FormControl(DEFAULT_POEM_COUNT)
-  })
+  protected poemList: Poem[] = []
 
-  protected readonly authorInput = toSignal(
-    this.authorFormControl.valueChanges,
-    { initialValue: this.authorFormControl.value }
-  )
+  protected readonly authorFormControl: FormControl
+  protected readonly searchForm
+
+  protected readonly authorInput
 
   protected authorNames = signal<string[]>([])
 
+  // Filter the authorNames list by matching with the current author search term
   protected readonly filteredAuthors = computed(() => {
     const author = this.authorInput().toLowerCase()
     return this.authorNames().filter(name => name.toLowerCase().includes(author))
@@ -135,28 +129,68 @@ export class Home {
 
   protected readonly isLoading = signal(false)
 
+  protected updateRoute(author: string, title: string, poemCount: number) {
+    const queryParams: Record<string, string> = {}
+    if (author) {
+      queryParams['author'] = author
+    }
+    if (title) {
+      queryParams['title'] = title
+    }
+    if (poemCount) {
+      queryParams['poemCount'] = String(poemCount)
+    }
+    this.router.navigate(['/'], { queryParams })
+  }
+
   protected async submitSearch() {
     this.isLoading.set(true)
+    const author = this.searchForm.value.author ?? ''
+    const title = this.searchForm.value.title ?? ''
+    const poemCount = this.searchForm.value.poemCount ?? 0
     try {
-      this.poemList = await this.poemService.getPoemsByAuthorTitle(
-        this.searchForm.value.author ?? '',
-        this.searchForm.value.title ?? '',
-        this.searchForm.value.poemCount ?? 0
-      )
+      this.poemList = await this.poemService.getPoemsByAuthorTitle(author, title, poemCount)
     } catch (err) {
       this.poemList = []
       console.error('Unable to fetch poem search results.', err)
     } finally {
+      this.updateRoute(author, title, poemCount)
       this.isLoading.set(false)
     }
   }
 
   constructor() {
+    // Capture any optional search terms stored in query params
+    const author = this.route.snapshot.queryParamMap.get('author') ?? ''
+    const title = this.route.snapshot.queryParamMap.get('title') ?? ''
+    const poemCountStr = this.route.snapshot.queryParamMap.get('poemCount') ?? '0'
+    const poemCount = Number.isFinite(Number(poemCountStr)) ? Number(poemCountStr) : 0
+
+    // Initialize the search input forms
+    this.authorFormControl = new FormControl<string>(author)
+    this.searchForm = new FormGroup({
+      author: this.authorFormControl,
+      title: new FormControl<string>(title),
+      poemCount: new FormControl<number>(poemCount)
+    })
+
+    // Make a signal out of the author form autocomplete reactivity
+    this.authorInput = toSignal(
+      this.authorFormControl.valueChanges,
+      { initialValue: this.authorFormControl.value }
+    )
+
+    // Asnycronously fetch the full list of author names for auto-completion
     this.poemService.getAuthors().then(names => {
       this.authorNames.set(names)
     }).catch(err => {
       this.authorNames.set([])
       console.error('Unable to fetch author names.', err)
     })
+
+    // Fetch results if search terms were stored in the url
+    if (author || title) {
+      this.submitSearch()
+    }
   }
 }
