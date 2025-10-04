@@ -31,7 +31,7 @@ docker run --publish 4200:80 --tty poem-quest:v0.2.0
 
 Notes
 -----
-- AngularJS is the chosen framework.
+- Angular is the chosen framework.
 - The `@angular/material` library is added for the autocomplete module.
 - Search functionality to find poems implemented in [home.ts](gui/src/app/home/home.ts)
 - Search result display implemented in [poem-entry.ts](gui/src/app/poem-entry/poem-entry.ts)
