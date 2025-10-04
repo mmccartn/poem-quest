@@ -38,6 +38,7 @@ export class PoemService {
     return json ?? []
   }
 
+  // Fetch all lines of the first poem found for a given author and title
   async getPoemText(author: string, title: string): Promise<string[]> {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
@@ -54,6 +55,7 @@ export class PoemService {
     return json?.length ? json[0].lines : []
   }
 
+  // Fetch all authors
   async getAuthors(): Promise<string[]> {
     const resp = await fetch(`${this.baseUrl}author`)
     if (resp.status !== 200) {
