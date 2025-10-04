@@ -114,10 +114,18 @@ export class Home {
 
   protected poemList: Poem[] = []
 
-  protected readonly authorFormControl: FormControl
-  protected readonly searchForm
+  protected readonly authorFormControl: FormControl = new FormControl<string>('')
+  protected readonly searchForm = new FormGroup({
+    author: this.authorFormControl,
+    title: new FormControl<string>(''),
+    poemCount: new FormControl<number>(0)
+  })
 
-  protected readonly authorInput
+  // Make a signal out of the author form for autocomplete reactivity
+  protected readonly authorInput = toSignal(
+    this.authorFormControl.valueChanges,
+    { initialValue: this.authorFormControl.value }
+  )
 
   protected authorNames = signal<string[]>([])
 
@@ -129,20 +137,6 @@ export class Home {
 
   protected readonly isLoading = signal(false)
 
-  protected updateRoute(author: string, title: string, poemCount: number) {
-    const queryParams: Record<string, string> = {}
-    if (author) {
-      queryParams['author'] = author
-    }
-    if (title) {
-      queryParams['title'] = title
-    }
-    if (poemCount) {
-      queryParams['poemCount'] = String(poemCount)
-    }
-    this.router.navigate(['/'], { queryParams })
-  }
-
   protected async submitSearch() {
     this.isLoading.set(true)
     const author = this.searchForm.value.author ?? ''
@@ -150,47 +144,50 @@ export class Home {
     const poemCount = this.searchForm.value.poemCount ?? 0
     try {
       this.poemList = await this.poemService.getPoemsByAuthorTitle(author, title, poemCount)
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          author: author || null,
+          title: title || null,
+          poemCount: poemCount || null
+        },
+        // replace the current url, don't merge a new one onto the navigation stack
+        queryParamsHandling: 'replace',
+        replaceUrl: true
+      })
     } catch (err) {
       this.poemList = []
       console.error('Unable to fetch poem search results.', err)
     } finally {
-      this.updateRoute(author, title, poemCount)
       this.isLoading.set(false)
     }
   }
 
   constructor() {
-    // Capture any optional search terms stored in query params
-    const author = this.route.snapshot.queryParamMap.get('author') ?? ''
-    const title = this.route.snapshot.queryParamMap.get('title') ?? ''
-    const poemCountStr = this.route.snapshot.queryParamMap.get('poemCount') ?? '0'
-    const poemCount = Number.isFinite(Number(poemCountStr)) ? Number(poemCountStr) : 0
+    this.route.queryParamMap.subscribe(params => {
+      const author = params.get('author') ?? ''
+      const title = params.get('title') ?? ''
+      const poemCountStr = params.get('poemCount') ?? '0'
+      const poemCount = Number.isFinite(+Number(poemCountStr)) ? +Number(poemCountStr) : 0
 
-    // Initialize the search input forms
-    this.authorFormControl = new FormControl<string>(author)
-    this.searchForm = new FormGroup({
-      author: this.authorFormControl,
-      title: new FormControl<string>(title),
-      poemCount: new FormControl<number>(poemCount)
+      // Update all search form fields to match url query params,
+      // but suppress events to avoid possible loops
+      this.searchForm.patchValue({ author, title, poemCount }, { emitEvent: false })
+
+      // Auto (re)fetch results if search terms were stored in the url
+      if (author || title) {
+        this.submitSearch()
+      } else {
+        this.poemList = []
+      }
     })
 
-    // Make a signal out of the author form autocomplete reactivity
-    this.authorInput = toSignal(
-      this.authorFormControl.valueChanges,
-      { initialValue: this.authorFormControl.value }
-    )
-
-    // Asnycronously fetch the full list of author names for auto-completion
+    // Asynchronously fetch the full list of author names for auto-completion
     this.poemService.getAuthors().then(names => {
       this.authorNames.set(names)
     }).catch(err => {
       this.authorNames.set([])
       console.error('Unable to fetch author names.', err)
     })
-
-    // Fetch results if search terms were stored in the url
-    if (author || title) {
-      this.submitSearch()
-    }
   }
 }
