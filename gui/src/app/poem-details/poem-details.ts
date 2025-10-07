@@ -1,5 +1,5 @@
 import { ActivatedRoute } from '@angular/router'
-import { Component, inject, signal } from '@angular/core'
+import { Component, inject, signal, computed } from '@angular/core'
 import { PoemService } from '../poem.service'
 
 @Component({
@@ -14,11 +14,15 @@ import { PoemService } from '../poem.service'
           <p class="loading">Loading poem...</p>
         } @else {
           @for (line of lines(); track $index) {
-            <p>{{ line }}</p>
+            @if (line) {
+              <p>{{ line }}</p>
+            } @else {
+              <br>
+            }
           }
         }
       </section>
-      <p class="line-count">Total lines: {{ this.lines().length }}</p>
+      <p class="line-count">Total lines: {{ lineCount() }}</p>
     </article>
   `,
   styles: `
@@ -71,6 +75,10 @@ export class PoemDetails {
 
   protected readonly lines = signal<string[]>([])
   protected readonly isLoading = signal(false)
+
+  protected readonly lineCount = computed(() => {
+    return this.lines().reduce((cnt, line) => line ? cnt + 1 : cnt, 0)
+  })
 
   constructor() {
     this.author = this.route.snapshot.params['author']
