@@ -1,5 +1,4 @@
-import { ActivatedRoute } from '@angular/router'
-import { Component, inject, signal } from '@angular/core'
+import { Component, inject, signal, input, effect } from '@angular/core'
 import { PoemService } from '../poem.service'
 
 @Component({
@@ -7,8 +6,8 @@ import { PoemService } from '../poem.service'
   imports: [],
   template: `
     <article class="poem">
-      <h2 class="title">{{ title }}</h2>
-      <p class="author">By: {{ author }}</p>
+      <h2 class="title">{{ title() }}</h2>
+      <p class="author">By: {{ author() }}</p>
       <section class="text">
         @if (isLoading()) {
           <p class="loading">Loading poem...</p>
@@ -63,27 +62,25 @@ import { PoemService } from '../poem.service'
   `
 })
 export class PoemDetails {
-  protected readonly route: ActivatedRoute = inject(ActivatedRoute)
-  protected readonly poemService: PoemService = inject(PoemService)
+  readonly author = input.required<string>()
+  readonly title = input.required<string>()
 
-  protected readonly author: string
-  protected readonly title: string
+  protected readonly poemService: PoemService = inject(PoemService)
 
   protected readonly lines = signal<string[]>([])
   protected readonly isLoading = signal(false)
 
   constructor() {
-    this.author = this.route.snapshot.params['author']
-    this.title = this.route.snapshot.params['title']
-
-    this.isLoading.set(true)
-    this.poemService.getPoemText(this.author, this.title).then(lines => {
-      this.lines.set(lines)
-    }).catch(err => {
-      this.lines.set([])
-      console.error('Unable to fetch poem.', err)
-    }).finally(() => {
-      this.isLoading.set(false)
+    effect(() => {
+      this.isLoading.set(true)
+      this.poemService.getPoemText(this.author(), this.title()).then(lines => {
+        this.lines.set(lines)
+      }).catch(err => {
+        this.lines.set([])
+        console.error('Unable to fetch poem.', err)
+      }).finally(() => {
+        this.isLoading.set(false)
+      })
     })
   }
 }

@@ -3,13 +3,14 @@ import { Component, inject, signal, computed } from '@angular/core'
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 import { Poem } from '../types/poem'
 import { PoemEntry } from '../poem-entry/poem-entry'
+import { PoemDetails } from '../poem-details/poem-details'
 import { PoemService } from '../poem.service'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { MatAutocompleteModule } from '@angular/material/autocomplete'
 
 @Component({
   selector: 'app-home',
-  imports: [PoemEntry, ReactiveFormsModule, MatAutocompleteModule],
+  imports: [PoemEntry, PoemDetails, ReactiveFormsModule, MatAutocompleteModule],
   template: `
     <section class="search">
       <form [formGroup]="searchForm" (submit)="submitSearch()">
@@ -43,7 +44,10 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete'
       } @else {
         <div class="poem-list">
           @for (poem of poemList; track $index) {
-            <app-poem-entry [poem]="poem" />
+            <app-poem-entry [poem]="poem" (toggle)="toggleSelectedPoem(poem)" />
+            @if (selectedPoem() === poem) {
+              <app-poem-details [author]="poem.author" [title]="poem.title" />
+            }
           }
         </div>
       }
@@ -127,6 +131,11 @@ export class Home {
     { initialValue: this.authorFormControl.value }
   )
 
+  protected readonly selectedPoem = signal<Poem | null>(null)
+  protected toggleSelectedPoem(poem: Poem) {
+    this.selectedPoem.set(this.selectedPoem() === poem ? null : poem)
+  }
+
   protected authorNames = signal<string[]>([])
 
   // Filter the authorNames list by matching with the current author search term
@@ -138,6 +147,7 @@ export class Home {
   protected readonly isLoading = signal(false)
 
   protected async submitSearch() {
+    this.selectedPoem.set(null)
     this.isLoading.set(true)
     const author = this.searchForm.value.author ?? ''
     const title = this.searchForm.value.title ?? ''
