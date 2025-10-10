@@ -43,7 +43,6 @@ export class PoemService {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
     const url = `${this.baseUrl}author,title,poemcount/${author};${title};1/lines`
-    console.log(url)
     const resp = await fetch(url)
     if (resp.status !== 200) {
       throw new InvalidResponseError(resp.status, resp.statusText)
