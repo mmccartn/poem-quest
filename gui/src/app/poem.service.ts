@@ -1,8 +1,20 @@
 import { Injectable } from '@angular/core'
 import { Poem } from './types/poem'
+import { HttpClient } from '@angular/common/http'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+
+interface PoetryErrorResponse {
+  status: string
+  reason: string
+}
+
+function isErrorResponse(resp: any): resp is PoetryErrorResponse {
+  return typeof resp?.status === 'string' && typeof resp?.reason === 'string'
+}
 
 class InvalidResponseError extends Error {
-  constructor(status: number, reason: string) {
+  constructor(status: string, reason: string = '') {
     super(`${status} - ${reason}`)
   }
 }
@@ -12,6 +24,11 @@ class InvalidResponseError extends Error {
 })
 export class PoemService {
   protected readonly baseUrl: string = 'https://poetrydb.org/'
+  protected readonly http: HttpClient
+
+  constructor(httpClient: HttpClient) {
+    this.http = httpClient
+  }
 
   protected sanitizeString(term: string): string {
     return encodeURIComponent(term)
@@ -21,49 +38,44 @@ export class PoemService {
     return Math.min(Math.max(term, 0), 1000)
   }
 
-  async getPoemsByAuthorTitle(author: string, title: string, poemCount: number): Promise<Poem[]> {
+  getPoemsByAuthorTitle(author: string, title: string, poemCount: number): Observable<Poem[]> {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
     poemCount = this.sanitizeNumber(poemCount)
-    const resp = await fetch(
-      `${this.baseUrl}author,title,poemcount/${author};${title};${poemCount}/author,title,linecount`
+    const url = `${this.baseUrl}author,title,poemcount/${author};${title};${poemCount}/author,title,linecount`
+    return this.http.get<PoetryErrorResponse | Poem[]>(url).pipe(
+      map(resp => {
+        if (isErrorResponse(resp)) {
+          throw new InvalidResponseError(resp.status, resp.reason)
+        }
+        return resp ?? []
+      })
     )
-    if (resp.status !== 200) {
-      throw new InvalidResponseError(resp.status, resp.statusText)
-    }
-    const json = await resp.json()
-    if (json.status) {
-      throw new InvalidResponseError(json.status, json.reason)
-    }
-    return json ?? []
   }
 
-  // Fetch all lines of the first poem found for a given author and title
-  async getPoemText(author: string, title: string): Promise<string[]> {
+  getPoemText(author: string, title: string): Observable<string[]> {
     author = this.sanitizeString(author)
     title = this.sanitizeString(title)
     const url = `${this.baseUrl}author,title,poemcount/${author};${title};1/lines`
-    const resp = await fetch(url)
-    if (resp.status !== 200) {
-      throw new InvalidResponseError(resp.status, resp.statusText)
-    }
-    const json = await resp.json()
-    if (json.status) {
-      throw new InvalidResponseError(json.status, json.reason)
-    }
-    return json?.length ? json[0].lines : []
+    return this.http.get<PoetryErrorResponse | { lines: string[] }[]>(url).pipe(
+      map(resp => {
+        if (isErrorResponse(resp)) {
+          throw new InvalidResponseError(resp.status, resp.reason)
+        }
+        return resp?.length ? resp[0].lines : []
+      })
+    )
   }
 
-  // Fetch all authors
-  async getAuthors(): Promise<string[]> {
-    const resp = await fetch(`${this.baseUrl}author`)
-    if (resp.status !== 200) {
-      throw new InvalidResponseError(resp.status, resp.statusText)
-    }
-    const json = await resp.json()
-    if (json.status) {
-      throw new InvalidResponseError(json.status, json.reason)
-    }
-    return json?.authors ?? []
+  getAuthors(): Observable<string[]> {
+    const url = `${this.baseUrl}authors`
+    return this.http.get<PoetryErrorResponse | { authors: string[] }>(url).pipe(
+      map(resp => {
+        if (isErrorResponse(resp)) {
+          throw new InvalidResponseError(resp.status, resp.reason)
+        }
+        return resp.authors ?? []
+      })
+    )
   }
 }
