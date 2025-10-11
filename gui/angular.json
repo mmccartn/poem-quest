@@ -9,8 +9,7 @@
         "@schematics/angular:component": {
           "inlineTemplate": true,
           "inlineStyle": true,
-          "style": "scss",
-          "skipTests": true
+          "style": "scss"
         },
         "@schematics/angular:class": {
           "skipTests": true
@@ -28,9 +27,6 @@
           "skipTests": true
         },
         "@schematics/angular:resolver": {
-          "skipTests": true
-        },
-        "@schematics/angular:service": {
           "skipTests": true
         }
       },
@@ -94,6 +90,22 @@
           "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "poem-quest:build"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": ["src/favicon.ico"],
+            "styles": [
+              "src/custom-theme.scss",
+              "src/styles.css"
+            ]
           }
         }
       }

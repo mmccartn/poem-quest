@@ -3,7 +3,7 @@ PoemQuest
 
 [https://mmccartn.github.io/poem-quest/](https://mmccartn.github.io/poem-quest/)
 
-A website to query the [PoetryDB](https://poetrydb.org), adapted from the Angular [first-app](https://angular.dev/tutorials/first-app) and [signals](https://angular.dev/tutorials/signals) tutorials.
+A website to query the [PoetryDB](https://poetrydb.org), adapted from the Angular [first-app](https://angular.dev/tutorials/first-app) and [signals](https://angular.dev/tutorials/signals) tutorials. Testing configuration adapted adapted from the Angular [Testing](https://angular.dev/guide/testing) guide.
 
 Requirements
 ------------
@@ -15,6 +15,13 @@ Development
 2. Install the dependencies: `npm install`
 3. Compile and host locally: `npm run start`
 4. Navigate to the website at: [http://localhost:4200](http://localhost:4200)
+
+Testing
+-------
+To execute unit tests with the [Karma](https://karma-runner.github.io) test runner:
+
+1. Navigate to the app root: `cd gui`
+2. Test: `npm run test`
 
 Deploy
 ------

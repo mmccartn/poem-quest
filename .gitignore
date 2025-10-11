@@ -1,5 +1,11 @@
-.angular
-dist
-node_modules
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+## Personal
 NOTES.md
 scratch
