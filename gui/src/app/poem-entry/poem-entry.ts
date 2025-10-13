@@ -1,14 +1,13 @@
-import { Component, input } from '@angular/core'
+import { Component, input, output } from '@angular/core'
 import { Poem } from '../types/poem'
-import { RouterLink } from '@angular/router'
 
 @Component({
   selector: 'app-poem-entry',
-  imports: [RouterLink],
+  imports: [],
   template: `
     <article class="poem">
       <div class="info">
-        <h3 class="title" [routerLink]="['/details', poem().author, poem().title]">
+        <h3 class="title" (click)="toggle.emit()">
           {{ poem().title }}
         </h3>
         <p class="author">{{ poem().author }}</p>
@@ -61,4 +60,5 @@ import { RouterLink } from '@angular/router'
 })
 export class PoemEntry {
   readonly poem = input.required<Poem>()
+  protected readonly toggle = output()
 }
