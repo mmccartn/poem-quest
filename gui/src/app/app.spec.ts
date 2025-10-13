@@ -6,7 +6,6 @@ import { provideRouter } from '@angular/router'
 // https://konadu.dev/how-to-fix-no-provider-for-activated-route-in-angular-testing
 
 describe('App', () => {
-  let component: App
   let fixture: ComponentFixture<App>
 
   beforeEach(async () => {
@@ -16,7 +15,6 @@ describe('App', () => {
     }).compileComponents()
 
     fixture = TestBed.createComponent(App)
-    component = fixture.componentInstance
     fixture.detectChanges()
   })
 
@@ -30,6 +28,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App)
     fixture.detectChanges()
     const compiled = fixture.nativeElement as HTMLElement
-      expect(compiled.querySelector('h1')?.textContent).toContain('PoemQuest')
+    expect(compiled.querySelector('h1')?.textContent).toContain('PoemQuest')
   })
 })
