@@ -40,10 +40,14 @@
             "outputPath": "dist/poem-quest",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico"],
+            "assets": [
+              "src/favicon.ico"
+            ],
             "styles": [
               "src/custom-theme.scss",
               "src/styles.css"
@@ -101,11 +105,24 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico"],
+            "assets": [
+              "src/favicon.ico"
+            ],
             "styles": [
               "src/custom-theme.scss",
               "src/styles.css"
             ]
+          }
+        },
+        "e2e": {
+          "builder": "playwright-ng-schematics:playwright",
+          "options": {
+            "devServerTarget": "poem-quest:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "poem-quest:serve:production"
+            }
           }
         }
       }
