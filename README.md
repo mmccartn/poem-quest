@@ -39,6 +39,15 @@ docker build --tag poem-quest:v0.2.0 .
 docker run --publish 4200:80 --tty poem-quest:v0.2.0
 ```
 
+#### Kubernetes
+To deploy poem-quest to a local Kubernetes (K8s) cluster:
+
+1. [Enable Kubernetes](https://docs.docker.com/desktop/features/kubernetes/) in Docker Desktop with `kubeadm` as the "provisioning method"
+2. Install the kubernetes cli tool [kubectl](https://kubernetes.io/docs/tasks/tools/)
+3. Apply the manifests (configuration files): `kubectl apply -f ./k8s/ --recursive`
+4. Monotior with either [K8sLens](https://k8slens.dev/) or `kubectl get pods -A`
+5. Navigate to [http://localhost:8080](http://localhost:8080)
+
 Notes
 -----
 - Angular is the chosen framework.

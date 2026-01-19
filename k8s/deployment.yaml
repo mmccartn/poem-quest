@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poem-quest-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poem-quest
+  template:
+    metadata:
+      labels:
+        app: poem-quest
+    spec:
+      containers:
+      - name: poem-quest
+        image: poem-quest:v0.2.0
+        ports:
+        - containerPort: 80
