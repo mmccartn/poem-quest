@@ -1,6 +1,7 @@
 import { ActivatedRoute } from '@angular/router'
 import { Component, inject, signal, computed } from '@angular/core'
 import { PoemService } from '../poem.service'
+import { finalize } from 'rxjs/operators'
 
 @Component({
   selector: 'app-poem-details',
@@ -85,13 +86,14 @@ export class PoemDetails {
     this.title = this.route.snapshot.params['title']
 
     this.isLoading.set(true)
-    this.poemService.getPoemText(this.author, this.title).then(lines => {
-      this.lines.set(lines)
-    }).catch(err => {
-      this.lines.set([])
-      console.error('Unable to fetch poem.', err)
-    }).finally(() => {
-      this.isLoading.set(false)
+    this.poemService.getPoemText(this.author, this.title)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: lines => this.lines.set(lines),
+        error: err => {
+          this.lines.set([])
+          console.error('Unable to fetch poem.', err)
+        }
     })
   }
 }

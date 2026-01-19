@@ -6,6 +6,7 @@ import { PoemEntry } from '../poem-entry/poem-entry'
 import { PoemService } from '../poem.service'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { MatAutocompleteModule } from '@angular/material/autocomplete'
+import { finalize } from 'rxjs/operators'
 
 @Component({
   selector: 'app-home',
@@ -142,25 +143,28 @@ export class Home {
     const author = this.searchForm.value.author ?? ''
     const title = this.searchForm.value.title ?? ''
     const poemCount = this.searchForm.value.poemCount ?? 0
-    try {
-      this.poemList = await this.poemService.getPoemsByAuthorTitle(author, title, poemCount)
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          author: author || null,
-          title: title || null,
-          poemCount: poemCount || null
+    this.poemService.getPoemsByAuthorTitle(author, title, poemCount)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: poems => {
+          this.poemList = poems
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {
+              author: author || null,
+              title: title || null,
+              poemCount: poemCount || null
+            },
+            // replace the current url, don't merge a new one onto the navigation stack
+            queryParamsHandling: 'replace',
+            replaceUrl: true
+          })
         },
-        // replace the current url, don't merge a new one onto the navigation stack
-        queryParamsHandling: 'replace',
-        replaceUrl: true
+        error: err => {
+          this.poemList = []
+          console.error('Unable to fetch poem search results.', err)
+        }
       })
-    } catch (err) {
-      this.poemList = []
-      console.error('Unable to fetch poem search results.', err)
-    } finally {
-      this.isLoading.set(false)
-    }
   }
 
   constructor() {
@@ -183,11 +187,12 @@ export class Home {
     })
 
     // Asynchronously fetch the full list of author names for auto-completion
-    this.poemService.getAuthors().then(names => {
-      this.authorNames.set(names)
-    }).catch(err => {
-      this.authorNames.set([])
-      console.error('Unable to fetch author names.', err)
+    this.poemService.getAuthors().subscribe({
+      next: names => this.authorNames.set(names),
+      error: err => {
+        this.authorNames.set([])
+        console.error('Unable to fetch author names.', err)
+      }
     })
   }
 }
